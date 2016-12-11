@@ -9,6 +9,8 @@ import hashlib
 import tempfile
 import subprocess
 import os
+import uuid
+from .models import Token
 
 
 config = apps.get_app_config('django_safari_notifications')
@@ -27,18 +29,38 @@ class Log(View):
 
 class RegistrationChanges(View):
     """
-
+    POST is called by APNs when a user accepts, whereas DELETE is when a user denies
     """
     def post(self, request, device_token, website_push_id):
-        logger.info('Change in registration for website {pid}: token {token} {post}'.format(
-            post=request.POST, token=device_token, pid=website_push_id)
+        logger.info('Change in registration for website {pid}: token {token}'.format(
+            token=device_token, pid=website_push_id)
         )
+        try:
+            token = Token.objects.get(token=device_token)
+        except Token.DoesNotExist:
+            token = Token.objects.create(token=device_token, status=Token.STATUS.granted, website_push_id=website_push_id)
+        else:
+            token.status = Token.STATUS.granted
+            token.save()
+        # TODO signals
         return HttpResponse('')
 
     def delete(self, request, device_token, website_push_id):
-        logger.debug('Attempt to delete registration for website {pid}: token {token} {post}'.format(
-            post=request.POST, token=device_token, pid=website_push_id)
+        logger.info('Attempt to delete registration for website {pid}: token {token}'.format(
+            token=device_token, pid=website_push_id)
         )
+        try:
+            token = Token.objects.get(token=device_token)
+        except Token.DoesNotExist:
+            logger.error('Token {token} was not registered for website {pid}'.format(pid=website_push_id, token=device_token))
+        else:
+            if token.status == Token.STATUS.denied:
+                logger.info('Token {token} was already denied for website {pid}'.format(pid=website_push_id, token=device_token))
+            else:
+                token.status = Token.STATUS.denied
+                token.save()
+        # TODO signals
+
         return HttpResponse('')
 
 
@@ -56,13 +78,19 @@ class PushPackage(View):
     If no push_package, the view generates one
     """
     def post(self, request, website_push_id):
+        body = json.loads(request.body.decode('utf-8'))
+        # Body contains authentication. If not we create one
         # are we using the Domain models?
         if config.website_conf is not None:
-            website_conf = json.dumps(config.website_conf)
+            website_conf = config.website_conf.clone()
             iconset_folder = config.iconset_folder
         else:
             # TODO Read from Domain
             pass
+        website_conf["authenticationToken"] = body.get(config.userinfo_key, uuid.uuid4())
+        logger.info('Push will be authenticated with userinfo %s' % website_conf['authenticationToken'])
+
+        website_conf = json.dumps(website_conf)
 
         # Create the zip file in memory
         s = BytesIO()
