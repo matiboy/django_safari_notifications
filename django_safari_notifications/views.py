@@ -95,8 +95,9 @@ class PushPackage(View):
                 zf.writestr('manifest.json', data)
                 with tempfile.NamedTemporaryFile() as signature:
                     cmd = ['openssl', 'cms', '-sign', '-signer', config.cert, '-binary', '-in', path, '-outform', 'der', '-out', signature.name, '-passin', config.passphrase]
-                    logger.debug(' '.join(cmd))
+                    logger.info(' '.join(cmd))
                     subprocess.call(cmd)
+                    zf.write(signature.name, 'signature')
 
 
         return HttpResponse(s.getvalue(), content_type=CONTENT_TYPE)
