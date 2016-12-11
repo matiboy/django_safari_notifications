@@ -36,8 +36,10 @@ class RegistrationChanges(View):
         logger.info('Change in registration for website {pid}: token {token}'.format(
             token=device_token, pid=website_push_id)
         )
-        authentication_token = request['HTTP_AUTHORIZATION']
-        logger.info('Auth token %s' % authentication_token)
+
+        userinfo = self._get_userinfo(request)
+
+        logger.info('Corresponding auth token %s' % userinfo)
         isnew = False
         try:
             token = Token.objects.get(token=device_token)
@@ -49,13 +51,16 @@ class RegistrationChanges(View):
             token.save()
 
         # TODO decide whether we should send the model or the string token
-        permission_granted.send(sender=self.__class__, token=device_token, isnew=isnew)
+        permission_granted.send(sender=self.__class__, token=device_token, userinfo=userinfo, isnew=isnew)
         return HttpResponse('')
 
     def delete(self, request, device_token, website_push_id):
         logger.info('Attempt to delete registration for website {pid}: token {token}'.format(
             token=device_token, pid=website_push_id)
         )
+        userinfo = self._get_userinfo(request)
+
+        logger.info('Corresponding auth token %s' % userinfo)
         try:
             token = Token.objects.get(token=device_token)
         except Token.DoesNotExist:
@@ -66,23 +71,28 @@ class RegistrationChanges(View):
             else:
                 token.status = Token.STATUS.denied
                 token.save()
-        # TODO signals
+
+        permission_denied.send(sender=self.__class__, token=device_token, userinfo=userinfo)
 
         return HttpResponse('')
 
+    def _get_userinfo(self, request):
+        # Auth token comes as ApplePushNotifications 123abcd123465465jkljdkglfjdfdsfds <- token that was passed in website.conf
+        try:
+            authentication_header = request.META['HTTP_AUTHORIZATION']
+        except KeyError:
+            raise ValueError('All APN registrations calls are expected to contain an authorization header')
+        apn, _, userinfo = authentication_header.partition(' ')
+
+        if apn != 'ApplePushNotifications':
+            raise ValueError('All APN authentication headers are expected to start with ApplePushNotifications')
+
+        return userinfo
+
 
 class PushPackage(View):
-    """ During DEV only, get rid of it later """
-    def get(self, request, website_push_id):
-        resp = self.post(request, website_push_id)
-        resp['Content-Disposition'] = 'attachment; filename=yellow.zip'
-
-        return resp
-
-
     """
     This view serves the pushPackage.zip as per Apple's requirements
-    If no push_package, the view generates one
     """
     def post(self, request, website_push_id):
         body = json.loads(request.body.decode('utf-8'))
@@ -94,8 +104,9 @@ class PushPackage(View):
         else:
             # TODO Read from Domain
             pass
-        website_conf["authenticationToken"] = body.get(config.userinfo_key, uuid.uuid4())
-        logger.info('Push will be authenticated with userinfo %s' % website_conf['authenticationToken'])
+        userinfo = body.get(config.userinfo_key, uuid.uuid4())
+        website_conf["authenticationToken"] = userinfo
+        logger.info('Push will be authenticated with userinfo %s' % userinfo)
 
         website_conf = json.dumps(website_conf)
 
@@ -140,5 +151,6 @@ class PushPackage(View):
             # Due to close above, we need to delete the temp file ourselves
             os.remove(path)
 
+        push_package_sent.send(sender=self.__class__, userinfo=userinfo)
 
         return HttpResponse(s.getvalue(), content_type=CONTENT_TYPE)
