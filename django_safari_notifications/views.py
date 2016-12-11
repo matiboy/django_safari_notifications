@@ -11,6 +11,7 @@ import subprocess
 import os
 import uuid
 from .models import Token
+from .signals import permission_denied, permission_granted, push_package_sent
 
 
 config = apps.get_app_config('django_safari_notifications')
@@ -35,14 +36,20 @@ class RegistrationChanges(View):
         logger.info('Change in registration for website {pid}: token {token}'.format(
             token=device_token, pid=website_push_id)
         )
+        authentication_token = request['HTTP_AUTHORIZATION']
+        logger.info('Auth token %s' % authentication_token)
+        isnew = False
         try:
             token = Token.objects.get(token=device_token)
         except Token.DoesNotExist:
             token = Token.objects.create(token=device_token, status=Token.STATUS.granted, website_push_id=website_push_id)
+            isnew = True
         else:
             token.status = Token.STATUS.granted
             token.save()
-        # TODO signals
+
+        # TODO decide whether we should send the model or the string token
+        permission_granted.send(sender=self.__class__, token=device_token, isnew=isnew)
         return HttpResponse('')
 
     def delete(self, request, device_token, website_push_id):
