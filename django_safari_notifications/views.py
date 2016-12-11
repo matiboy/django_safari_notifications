@@ -30,7 +30,7 @@ class RegistrationChanges(View):
 
     """
     def post(self, request, device_token, website_push_id):
-        logger.debug('Change in registration for website {pid}: token {token} {post}'.format(
+        logger.info('Change in registration for website {pid}: token {token} {post}'.format(
             post=request.POST, token=device_token, pid=website_push_id)
         )
         return HttpResponse('')
@@ -99,7 +99,7 @@ class PushPackage(View):
             with tempfile.NamedTemporaryFile() as signature:
                 cmd = ['openssl', 'cms', '-sign', '-signer', config.cert, '-binary', '-in', path, '-outform', 'der', '-out', signature.name, '-passin', config.passphrase]
                 logger.info('Openssl cms command called: %s ' % ' '.join(cmd))
-                logger.info(subprocess.check_output(cmd))
+                logger.info('Openssl command output: %s ' % subprocess.check_output(cmd))
                 zf.write(signature.name, 'signature')
 
             # Due to close above, we need to delete the temp file ourselves
