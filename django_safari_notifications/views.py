@@ -70,9 +70,9 @@ class PushPackage(View):
             manifest = {}
             hasher = hashlib.sha1()
             # Add website_conf to it
-            zf.writestr('website.conf', website_conf)
+            zf.writestr('website.json', website_conf)
             hasher.update(website_conf.encode())
-            manifest['website.conf'] = hasher.hexdigest()
+            manifest['website.json'] = hasher.hexdigest()
 
             # Go through the icons
             for size in ICON_SIZES:
