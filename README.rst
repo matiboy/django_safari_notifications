@@ -43,6 +43,7 @@ then add your config to your `INSTALLED_APPS`:
     INSTALLED_APPS = (
         ...
         'my_safari_app.apps.MySafariNotificationsConfig', # if you need the pushPackage to be dynamically built
+        ## OR ##
         'django_safari_notifications.apps.DjangoSafariNotificationsConfig', # If you are serving your own push package via Nginx
         ...
     )
