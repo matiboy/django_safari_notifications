@@ -95,14 +95,15 @@ class PushPackage(View):
 
             # Had to close manifest_json first before being able to write it to zip (got 0 bytes otherwise)
             zf.write(path, 'manifest.json')
-            # Therefore, we need to delete the temp file
-            os.remove(path)
 
             with tempfile.NamedTemporaryFile() as signature:
                 cmd = ['openssl', 'cms', '-sign', '-signer', config.cert, '-binary', '-in', path, '-outform', 'der', '-out', signature.name, '-passin', config.passphrase]
                 logger.info('Openssl cms command called: %s ' % ' '.join(cmd))
                 logger.info(subprocess.check_output(cmd))
                 zf.write(signature.name, 'signature')
+
+            # Due to close above, we need to delete the temp file ourselves
+            os.remove(path)
 
 
         return HttpResponse(s.getvalue(), content_type=CONTENT_TYPE)
