@@ -18,7 +18,7 @@ class DomainNames(models.Model):
 
 class Token(StatusModel):
     STATUS = Choices('granted', 'denied')
-    token = models.CharField(max_length=255, unique=True)
+    token = models.CharField(max_length=180, unique=True)
     website_push_id = models.CharField(max_length=255, default='')
     domain = models.ForeignKey(Domain, null=True, related_name='tokens')
 

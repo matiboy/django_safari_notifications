@@ -82,7 +82,7 @@ class PushPackage(View):
         # Body contains authentication. If not we create one
         # are we using the Domain models?
         if config.website_conf is not None:
-            website_conf = config.website_conf.clone()
+            website_conf = config.website_conf.copy()
             iconset_folder = config.iconset_folder
         else:
             # TODO Read from Domain

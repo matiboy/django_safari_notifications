@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('status', model_utils.fields.StatusField(choices=[('granted', 'granted'), ('denied', 'denied')], default='granted', max_length=100, no_check_for_status=True, verbose_name='status')),
                 ('status_changed', model_utils.fields.MonitorField(default=django.utils.timezone.now, monitor='status', verbose_name='status changed')),
-                ('token', models.CharField(max_length=255, unique=True)),
+                ('token', models.CharField(max_length=180, unique=True)),
                 ('website_push_id', models.CharField(default='', max_length=255)),
                 ('domain', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='tokens', to='django_safari_notifications.Domain')),
             ],
