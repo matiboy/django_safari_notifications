@@ -10,8 +10,6 @@ Tests for `django-safari-notifications` models module.
 
 from django.test import TestCase
 
-from django_safari_notifications import models
-
 
 class TestDjango_safari_notifications(TestCase):
 

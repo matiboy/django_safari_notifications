@@ -13,16 +13,10 @@ from django.test import TestCase
 from django.apps import apps
 import random
 import string
-import mock
 import json
 import sys
 from django.conf import settings
-from importlib import import_module
-try:
-    import importlib
-    importlib.reload
-except AttributeError:
-    import imp as importlib
+import importlib
 
 from django.test.utils import override_settings
 

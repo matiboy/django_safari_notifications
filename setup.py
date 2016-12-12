@@ -4,6 +4,7 @@ import os
 import re
 import sys
 
+
 try:
     from setuptools import setup
 except ImportError:
@@ -19,6 +20,7 @@ def get_version(*file_paths):
     if version_match:
         return version_match.group(1)
     raise RuntimeError('Unable to find version string.')
+
 
 version = get_version("django_safari_notifications", "__init__.py")
 

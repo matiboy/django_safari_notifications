@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+from . import views
 from django.conf.urls import url
 from django.apps import apps
 from django.views.decorators.csrf import csrf_exempt
 config = apps.get_app_config('django_safari_notifications')
 
-from . import views
+
 urlpatterns = [
     url(
         regex="^{base}/{version}/pushPackages/(?P<website_push_id>[a-z0-9.]+)$".format(base=config.service_base, version=config.version),

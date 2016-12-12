@@ -2,6 +2,7 @@
 from django.apps import AppConfig
 import logging
 
+
 class DjangoSafariNotificationsConfig(AppConfig):
     name = 'django_safari_notifications'
     verbose_name = 'Safari Push Notifications'

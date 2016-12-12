@@ -20,6 +20,7 @@ logger = config.logger
 CONTENT_TYPE = 'application/zip'
 ICON_SIZES = ['16x16', '16x16@2x', '32x32', '32x32@2x', '128x128', '128x128@2x']
 
+
 class Log(View):
     def post(self, request):
         post = json.loads(request.body.decode('utf-8'))
@@ -44,14 +45,21 @@ class RegistrationChanges(View):
         try:
             token = Token.objects.get(token=device_token)
         except Token.DoesNotExist:
-            token = Token.objects.create(token=device_token, status=Token.STATUS.granted, website_push_id=website_push_id)
+            token = Token.objects.create(
+                token=device_token,
+                status=Token.STATUS.granted,
+                website_push_id=website_push_id
+            )
             isnew = True
         else:
             token.status = Token.STATUS.granted
             token.save()
 
         # TODO decide whether we should send the model or the string token
-        permission_granted.send(sender=self.__class__, token=device_token, userinfo=userinfo, isnew=isnew)
+        permission_granted.send(
+            sender=self.__class__,
+            token=device_token, userinfo=userinfo, isnew=isnew
+        )
         return HttpResponse('')
 
     def delete(self, request, device_token, website_push_id):
@@ -64,10 +72,14 @@ class RegistrationChanges(View):
         try:
             token = Token.objects.get(token=device_token)
         except Token.DoesNotExist:
-            logger.error('Token {token} was not registered for website {pid}'.format(pid=website_push_id, token=device_token))
+            logger.error('Token {token} was not registered for website {pid}'.format(
+                pid=website_push_id, token=device_token
+            ))
         else:
             if token.status == Token.STATUS.denied:
-                logger.info('Token {token} was already denied for website {pid}'.format(pid=website_push_id, token=device_token))
+                logger.info('Token {token} was already denied for website {pid}'.format(
+                    pid=website_push_id, token=device_token
+                ))
             else:
                 token.status = Token.STATUS.denied
                 token.save()
@@ -77,7 +89,9 @@ class RegistrationChanges(View):
         return HttpResponse('')
 
     def _get_userinfo(self, request):
-        # Auth token comes as ApplePushNotifications 123abcd123465465jkljdkglfjdfdsfds <- token that was passed in website.conf
+        """
+            Auth token comes as ApplePushNotifications 123abcd123465465jkljdkglfjdfdsfds <- token that was passed in website.conf
+        """
         try:
             authentication_header = request.META['HTTP_AUTHORIZATION']
         except KeyError:
