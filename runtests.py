@@ -17,7 +17,7 @@ try:
             "django.contrib.auth",
             "django.contrib.contenttypes",
             "django.contrib.sites",
-            "django_safari_notifications",
+            "django_safari_notifications.apps.DjangoSafariNotificationsConfig",
         ],
         SITE_ID=1,
         MIDDLEWARE_CLASSES=(),
