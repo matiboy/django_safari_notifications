@@ -67,8 +67,9 @@ class Command(BaseCommand):
             # Try catch to create thumbnail
             try:
                 if size.endswith('x'):
-                    # Makes pixels x2
-                    thumbnail_tuple = (thumbnail_size * 2, thumbnail_size * 2)
+                    # Makes pixels xratio
+                    ratio = int(size[-2:-1])
+                    thumbnail_tuple = (thumbnail_size * ratio, thumbnail_size * ratio)
                 else:
                     # Makes pixels x1
                     thumbnail_tuple = (thumbnail_size, thumbnail_size)
