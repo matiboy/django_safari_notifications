@@ -66,7 +66,16 @@ Do not use any prefix for the unless you are serving your own `pushPackage.zip` 
 Features
 --------
 
-* TODO
+Create icons from image using the command:
+
+::
+
+  python manage.py create_icons [absolute path to image]
+
+Optional parameters:
+  - --output, -o: to specify output directory
+  - --no-create: does not create directory for icons
+  - --overwrite: overwrites existing files/folders
 
 Running Tests
 -------------

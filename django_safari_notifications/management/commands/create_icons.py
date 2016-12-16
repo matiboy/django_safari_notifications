@@ -1,17 +1,16 @@
 from django.core.management.base import BaseCommand
 from django.apps import apps
-import os, sys
+import os, sys, shutil
 from django_safari_notifications.views import ICON_SIZES
 
 config = apps.get_app_config('django_safari_notifications')
-# connects to logger in settings.py of connected project
 logger = config.logger
 
-# try catch to see if user has pillow installed
+# Checks to see if user has installed Pillow
 try:
-    from PIL import Image, ImageOps
+    from PIL import Image
 except ImportError:
-    logger.error('Pillow is required to use this command - pip install Pillow')
+    logger.error('Pillow is required to use this command. Install Pillow and try again')
     # Error code in sys.exit - ends the process
     sys.exit(1)
 
@@ -37,10 +36,38 @@ class Command(BaseCommand):
             default=False,
             help='Does not create a directory for iconset'
         )
+        parser.add_argument(
+            '--overwrite',
+            action='store_true',
+            dest='overwrite',
+            default=False,
+            help='Overwrites directory or files if exist'
+        )
 
     def handle(self, *args, **options):
         input_file_path = options['original_file_path']
         output_folder_path = options['destination'] + '/'
+
+        # If overwrite is true, will delete files and directory in output path/current directory
+        if options['overwrite']:
+            # Checks to see if directory exists and sets delete path
+            dir_exists = os.path.isdir(os.path.join(options['destination'], 'icon.iconset/'))
+            if dir_exists:
+                delete_path = './icon.iconset/'
+            else:
+                delete_path = './'
+
+            for size in ICON_SIZES:
+                try:
+                    os.remove('{}icon_{}.png'.format(delete_path, size))
+                except FileNotFoundError:
+                    pass
+
+            if dir_exists:
+                try:
+                    os.rmdir('./icon.iconset')
+                except OSError:
+                    logger.error('Could not remove directory: ', OSError)
 
         # Creates a directory for iconset based on whether no_create flag is true/false
         if not options['no_create']:
@@ -63,8 +90,6 @@ class Command(BaseCommand):
         for size in ICON_SIZES:
             copy = im.copy()
             thumbnail_size = int(size.split('x')[0])
-
-            # Try catch to create thumbnail
             try:
                 if size.endswith('x'):
                     # Makes pixels xratio
@@ -73,14 +98,14 @@ class Command(BaseCommand):
                 else:
                     # Makes pixels x1
                     thumbnail_tuple = (thumbnail_size, thumbnail_size)
-
+                # Creates thumbnail
                 copy.thumbnail(thumbnail_tuple, Image.LANCZOS)
             except IOError as e:
                 logger.error('Error creating thumbnail for image: ', e)
 
-            # Try catch to save image to destination
+            # Saves image to destination
             try:
-                copy.save((output_folder_path + 'icon_{0}.png').format(size))
+                copy.save('{}icon_{}.png'.format(output_folder_path, size))
             except (IOError, FileExistsError) as e:
                 logger.error('Error saving image: ', e)
                 return
