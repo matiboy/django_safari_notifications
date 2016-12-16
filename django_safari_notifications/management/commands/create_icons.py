@@ -66,7 +66,7 @@ class Command(BaseCommand):
             thumbnail_size = (int(thumbnail_arr[0]), int(thumbnail_arr[0]))
 
             # Try catch to create thumbnail
-l            try:
+            try:
                 if size.endswith('x'):
                     copy.resize(thumbnail_size, Image.LANCZOS)
                 else:
