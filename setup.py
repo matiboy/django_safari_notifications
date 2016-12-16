@@ -57,7 +57,7 @@ setup(
         'django_safari_notifications',
     ],
     include_package_data=True,
-    install_requires=["django-model-utils>=2.0", "inquirer>=2.1"],
+    install_requires=["django-model-utils>=2.0", "inquirer>=2.1", "Pillow>=2.0.0"],
     license="MIT",
     zip_safe=False,
     keywords='django-safari-notifications',
