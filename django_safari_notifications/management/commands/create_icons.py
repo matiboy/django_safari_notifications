@@ -9,7 +9,7 @@ logger = config.logger
 
 # try catch to see if user has pillow installed
 try:
-    from PIL import Image
+    from PIL import Image, ImageOps
 except ImportError:
     logger.error('Pillow is required to use this command - pip install Pillow')
     # Error code in sys.exit - ends the process
@@ -62,15 +62,18 @@ class Command(BaseCommand):
         # For values in ICON_SIZES, copies an image, creates thumbnails - based on whether normal or @2x and saves to output
         for size in ICON_SIZES:
             copy = im.copy()
-            thumbnail_arr = size.split('x')
-            thumbnail_size = (int(thumbnail_arr[0]), int(thumbnail_arr[0]))
+            thumbnail_size = int(size.split('x')[0])
 
             # Try catch to create thumbnail
             try:
                 if size.endswith('x'):
-                    copy.resize(thumbnail_size, Image.LANCZOS)
+                    # Makes pixels x2
+                    thumbnail_tuple = (thumbnail_size * 2, thumbnail_size * 2)
                 else:
-                    copy.thumbnail(thumbnail_size)
+                    # Makes pixels x1
+                    thumbnail_tuple = (thumbnail_size, thumbnail_size)
+
+                copy.thumbnail(thumbnail_tuple, Image.LANCZOS)
             except IOError as e:
                 logger.error('Error creating thumbnail for image: ', e)
 
