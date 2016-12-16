@@ -62,18 +62,19 @@ class Command(BaseCommand):
         # For values in ICON_SIZES, copies an image, creates thumbnails - based on whether normal or @2x and saves to output
         for size in ICON_SIZES:
             copy = im.copy()
-            thumbnail_size = (int(size[0:2]), int(size[0:2]))
+            thumbnail_arr = size.split('x')
+            thumbnail_size = (int(thumbnail_arr[0]), int(thumbnail_arr[0]))
 
             # Try catch to create thumbnail
-            try:
+l            try:
                 if size.endswith('x'):
-                    copy.thumbnail(thumbnail_size, Image.LANCZOS)
+                    copy.resize(thumbnail_size, Image.LANCZOS)
                 else:
                     copy.thumbnail(thumbnail_size)
             except IOError as e:
                 logger.error('Error creating thumbnail for image: ', e)
 
-            # Try catch to save image
+            # Try catch to save image to destination
             try:
                 copy.save((output_folder_path + 'icon_{0}.png').format(size))
             except (IOError, FileExistsError) as e:
