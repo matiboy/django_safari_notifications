@@ -10,7 +10,7 @@ import tempfile
 import subprocess
 import os
 import uuid
-from .models import Token
+from .models import Token, ICON_SIZES
 from .signals import permission_denied, permission_granted, push_package_sent
 
 
@@ -18,7 +18,7 @@ config = apps.get_app_config('django_safari_notifications')
 logger = config.logger
 
 CONTENT_TYPE = 'application/zip'
-ICON_SIZES = ['16x16', '16x16@2x', '32x32', '32x32@2x', '128x128', '128x128@2x']
+
 
 
 class Log(View):
