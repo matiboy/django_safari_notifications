@@ -105,12 +105,10 @@ class RegistrationChanges(View):
 
 
 class PushPackage(View):
-    """
-    This view serves the pushPackage.zip as per Apple's requirements
-    """
-    def post(self, request, website_push_id):
-        body = json.loads(request.body.decode('utf-8'))
-        # Body contains authentication. If not we create one
+    def _build_website_conf(self, request):
+        """
+        Use this to override the way the website conf dictionary is created
+        """
         # are we using the Domain models?
         if config.website_conf is not None:
             website_conf = config.website_conf.copy()
@@ -118,7 +116,21 @@ class PushPackage(View):
         else:
             # TODO Read from Domain
             pass
-        userinfo = body.get(config.userinfo_key, uuid.uuid4())
+
+        return website_conf, iconset_folder
+
+    def _get_userinfo(self, request):
+        body = json.loads(request.body.decode('utf-8'))
+        userinfo = body.get(config.userinfo_key, str(uuid.uuid4()))
+        return userinfo
+
+    """
+    This view serves the pushPackage.zip as per Apple's requirements
+    """
+    def post(self, request, website_push_id):
+        # Body contains authentication. If not we create one
+        website_conf, iconset_folder = self._build_website_conf(request)
+        userinfo = self._get_userinfo(request)
         website_conf["authenticationToken"] = userinfo
         logger.info('Push will be authenticated with userinfo %s' % userinfo)
 
